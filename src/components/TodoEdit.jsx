@@ -1,31 +1,30 @@
-import React, { useState } from 'react';
-import { DatePicker, Form, Input, Modal } from "antd";
-import { OnChangeDate } from "../../hooks/useChangeDate.js";
-import { saveItemEdit } from "./saveItem.js";
+import React, {useState} from 'react';
+import {Form, Input, Modal} from "antd";
+import {useDispatch, useSelector} from "react-redux";
+import {editTodoAction} from "../store/todoReducer.js";
 
-
-const TodoEdit = ({ isOpen, setIsOpen, currentItem, list, setList, localList, setLocalList, refresh, setRefresh, openMessage }) => {
+const TodoEdit = ({isOpen, setIsOpen}) => {
+    const [form] = Form.useForm()
     const [title, setTitle] = useState('')
     const [body, setBody] = useState('')
-    const [date, setDate] = useState('')
-    const [form] = Form.useForm()
-    const cancelItemEdit = () => {
-        setIsOpen(false)
-    }
-
+    const currentTodo = useSelector((state) => state.todo.currentTodo)
+    const dispatch = useDispatch()
     return (
         <Modal
             title={ 'Edit todo item' }
             open={ isOpen }
-            onCancel={ cancelItemEdit }
+            onCancel={ () => setIsOpen(false) }
             onOk={ () => {
                 form
                     .validateFields()
                     .then((values) => {
                         form.resetFields()
-                        saveItemEdit(currentItem, list, setList, localList, setLocalList, refresh, setRefresh, setIsOpen, title, body, date, openMessage)
-                    }).catch((e) => {
-
+                        dispatch(editTodoAction({
+                            id: currentTodo?.id,
+                            title,
+                            body
+                        }))
+                        setIsOpen(false)
                     })
             }}
             okButtonProps={{ title: 'Save' }}
@@ -57,16 +56,6 @@ const TodoEdit = ({ isOpen, setIsOpen, currentItem, list, setList, localList, se
                         size={ 'large' }
                         value={ body }
                         onChange={ event => setBody(event.target.value) }
-                    />
-                </Form.Item>
-                <Form.Item
-                    name={ 'Select date' }
-                    label={ 'Select date' }
-                    rules={[{ required: true }]}
-                >
-                    <DatePicker
-                        style={{ width: '100%' }}
-                        onChange={ (date, dateString) => setDate(OnChangeDate(date, dateString)) }
                     />
                 </Form.Item>
             </Form>
